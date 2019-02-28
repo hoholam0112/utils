@@ -1,5 +1,6 @@
 import os
 import argparse
+import tensorflow as tf
 
 def mkdir_auto(path):
     """ Make directories automatically """
@@ -35,6 +36,36 @@ def ask():
         return True
     else:
         return False
+
+scalar_pl = {}
+for dtype in [tf.int64, tf.float32]:
+    scalar_pl[dtype] = tf.placeholder(dtype, [])
+def scalar_variable(name, dtype, init_val, update_type):
+    """ Create a Tensorflow scalar variable
+    Args:
+        name: str, a name of a Tensorflow variable
+        dtype: Tensorflow datatype
+        init_val: An initial value
+        update_type: str, which update type to be used
+    Returns:
+        var: tf.Variable
+        update_fn: function, when be called, update
+        the variable depending on a given update_type argument
+    """
+    assert update_type == 'assign' or update_type == 'increment'
+    var = tf.get_variable(name, [], dtype, tf.constant_initializer(init_val),
+            trainable=False)
+    assign_op = tf.assign(var, scalar_pl[dtype])
+    increment_op = tf.assign_add(var, 1)
+
+    if update_type == 'assign':
+        def assign_fn(sess, v):
+            v_ = sess.run(assign_op, {scalar_pl[dtype]:v})
+        return var, assign_fn
+    else:
+        def increment_fn(sess):
+            return sess.run(increment_op)
+        return var, increment_fn
 
 if __name__ == '__main__':
     path_ = '../train_logs/deep_SVDD/1'

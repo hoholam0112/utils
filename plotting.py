@@ -43,5 +43,3 @@ def subplot_image(imgs, shape, fig_name, show=True, save=False, save_dir=None, c
         plt.close()
 
 
-
-
