@@ -1,6 +1,7 @@
 import os
 import argparse
 import tensorflow as tf
+import pandas as pd
 
 def mkdir_auto(path):
     """ Make directories automatically """
@@ -37,6 +38,46 @@ def ask():
     else:
         return False
 
+def update_dataframe(file_path, args, which):
+    """ Update dataframe by using parsed arguments
+    Args:
+        file_path: str, csv file generated from pandas dataframe object
+        args: namespace, parsed arguments
+        which: str, which type to be written 'train' or 'test'
+    Return:
+        df: updated pandas dataframe object
+    """
+    assert which == 'train' or which == 'test'
+    def args_to_dict(args, append):
+        """ Returns Dictionary From Arguments
+        Args:
+            args: Namespace object, parsed arguments
+            append: Bool, Whether to be append to pandas dataframe
+        Returns:
+            args_dict: Dictionary to be append to pandas dataframe
+        """
+        args_dict = {}
+        for key, value in args.__dict__.items():
+            if key != 'dname':
+                if append:
+                    args_dict[key] = value
+                else:
+                    args_dict[key] = [value]
+
+        if which == 'train':
+            args_dict['progress'] = 0
+        return args_dict
+
+    if not os.path.exists(file_path):
+        df = pd.DataFrame(args_to_dict(args, False))
+    else:
+        df = pd.read_csv(file_path)
+        if which == 'train'  and args.eid in list(df['eid']):
+            raise ValueError('Experiment \'{}\' already exists'.format(args.eid))
+        df = df.append(args_to_dict(args, True), ignore_index=True)
+    return df
+
+# Utility functions for Tensorflow 
 scalar_pl = {}
 for dtype in [tf.int64, tf.float32]:
     scalar_pl[dtype] = tf.placeholder(dtype, [])
