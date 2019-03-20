@@ -1,13 +1,20 @@
 import matplotlib.pyplot as plt
+import numpy as np
 
 def subplot_image(imgs, shape, fig_name, show=True, save=False, save_dir=None, centered=True):
     """
+    Plot subplot images
     Args:
         imgs: np.array with shape of (nb_imgs, height, width, channel) or (nb_imgs, height, width)
         shape: (nb_row, nb_col)
         save (boolean): save the figure or not
         show (boolean): show the figure or not
     """
+    if isinstance(imgs, list):
+        img_list = []
+        for img in imgs:
+            img_list.append(np.expand_dims(img, axis=0))
+        imgs = np.concatenate(img_list, axis=0)
     assert len(shape) == 2, 'Length of \'shape\' must be 2'
     assert len(imgs.shape) == 3 or len(imgs.shape) == 4
     assert imgs.shape[0] == shape[0]*shape[1], 'Number of subplots are not matched to number of images'
